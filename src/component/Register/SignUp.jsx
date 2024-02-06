@@ -28,7 +28,8 @@ const Signup = () => {
     email: "",
     password: "",
   });
-  const lottieConfig = {
+
+  const lottieDefaultConfig = {
     loop: true,
     autoplay: true,
     animationData: lottieData,
@@ -106,7 +107,7 @@ const Signup = () => {
       <div className="flex w-full justify-center items-center h-screen">
         {/* Lottie Animation */}
         <div>
-          <Lottie options={lottieConfig} height={400} width={400} />
+          <Lottie options={lottieDefaultConfig} height={400} width={400} />
         </div>
 
         <div className="flex flex-col justify-center h-screen w-[30%] mx-20">

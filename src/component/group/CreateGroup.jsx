@@ -10,7 +10,7 @@ const CreateGroup = ({ handleCreatedGroup }) => {
   const token = localStorage.getItem("token");
 
   const dispatch = useDispatch();
-  const { auth, chat, message } = useSelector((store) => store);
+  const { auth } = useSelector((store) => store);
 
   const [newGroup, setNewGroup] = useState(false);
   const [groupMember, setGroupMember] = useState(new Set());
@@ -69,25 +69,35 @@ const CreateGroup = ({ handleCreatedGroup }) => {
           {/* search users results */}
           <div className="bg-white overflow-y-scroll h-[50.2vh] p-3">
             {query &&
-              auth.searchUser?.map((item, index) => (
-                <div
-                  onClick={() => {
-                    groupMember.add(item);
-                    setGroupMember(groupMember);
-                    setQuery("");
-                  }}
-                  key={index}
-                >
-                  <hr />
-                  <ChatCard
-                    name={item.full_name}
-                    userImg={
-                      item.profile_picture ||
-                      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
-                    }
-                  />
-                </div>
-              ))}
+              auth.searchUser
+                ?.filter(
+                  (item) =>
+                    item.id !== auth.reqUser?.id &&
+                    ![...groupMember].some((member) => member.id === item.id)
+                )
+                .map((item, index) => (
+                  <div
+                    onClick={() => {
+                      setGroupMember((prevGroupMember) => {
+                        console.log("prevGroupMember: ", prevGroupMember);
+                        const newGroupMember = new Set(prevGroupMember);
+                        newGroupMember.add(item);
+                        return newGroupMember;
+                      });
+                      setQuery("");
+                    }}
+                    key={index}
+                  >
+                    <hr />
+                    <ChatCard
+                      name={item.full_name}
+                      userImg={
+                        item.profile_picture ||
+                        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
+                      }
+                    />
+                  </div>
+                ))}
           </div>
 
           <div className="flex bottom-10 py-10 bg-slate-200 items-center justify-center">
@@ -105,7 +115,13 @@ const CreateGroup = ({ handleCreatedGroup }) => {
         </div>
       )}
 
-      {newGroup && <NewGroup handleCreatedGroup={handleCreatedGroup} groupMember={groupMember} handleCloseNewGroup={handleCloseNewGroup}/>}
+      {newGroup && (
+        <NewGroup
+          handleCreatedGroup={handleCreatedGroup}
+          groupMember={groupMember}
+          handleCloseNewGroup={handleCloseNewGroup}
+        />
+      )}
     </div>
   );
 };

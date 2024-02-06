@@ -26,6 +26,8 @@ import { createMessage, getAllMessage } from "../redux/message/Action";
 
 import SockJS from "sockjs-client";
 import { over } from "stompjs";
+import Lottie from "react-lottie";
+import lottieData from "../lottie/start_chat.json";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -41,6 +43,15 @@ function HomePage() {
   const [stompClient, setStompClient] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
+
+  const lottieDefaultConfig = {
+    loop: true,
+    autoplay: true,
+    animationData: lottieData,
+    renderSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
 
   useEffect(() => {
     connect();
@@ -89,8 +100,7 @@ function HomePage() {
   const connect = () => {
     const sock = new SockJS("http://localhost:5454/ws");
     const temp = over(sock);
-    setStompClient(temp);
-    console.log("stomp client: ", temp);
+    setStompClient(() => temp);
     const header = {
       Authorization: `Bearer ${token}`,
       "X-XSRF-TOKEN": getCookie("XSRF-TOKEN"),
@@ -108,7 +118,10 @@ function HomePage() {
 
   const onMessageRecieve = (payload) => {
     const receivedMessage = JSON.parse(payload.body);
-    if (auth.reqUser.id !== receivedMessage.user.id)
+    if (
+      auth.reqUser.id !== receivedMessage.user.id &&
+      currentChat.id === receivedMessage.chat.id
+    )
       setMessages((prev) => [...prev, receivedMessage]);
   };
 
@@ -191,9 +204,10 @@ function HomePage() {
                     onClick={() => navigate("/status")}
                   />
                   <BiCommentDetail />
-                  <HomeMenu 
-                  handleCloseOpenProfile={handleCloseOpenProfile}
-                  handleCreatedGroup={handleCreatedGroup} />
+                  <HomeMenu
+                    handleCloseOpenProfile={handleCloseOpenProfile}
+                    handleCreatedGroup={handleCreatedGroup}
+                  />
                 </div>
               </div>
 
@@ -215,18 +229,20 @@ function HomePage() {
               {/* all users */}
               <div className="bg-white overflow-y-scroll h-[80vh] px-3">
                 {querys &&
-                  auth.searchUser?.map((item) => (
-                    <div onClick={(e) => handleOnClickChatCard(item.id)}>
-                      <hr />
-                      <ChatCard
-                        name={item.full_name}
-                        userImg={
-                          item.profile_picture ||
-                          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
-                        }
-                      />
-                    </div>
-                  ))}
+                  auth.searchUser
+                    ?.filter((item) => item.id !== auth.reqUser?.id)
+                    .map((item) => (
+                      <div onClick={(e) => handleOnClickChatCard(item.id)}>
+                        <hr />
+                        <ChatCard
+                          name={item.full_name}
+                          userImg={
+                            item.profile_picture ||
+                            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
+                          }
+                        />
+                      </div>
+                    ))}
 
                 {chat.chats.length > 0 &&
                   !querys &&
@@ -322,18 +338,31 @@ function HomePage() {
             </div>
 
             {/* message section */}
-            <div className="px-10 h-[85vh] overflow-y-scroll bg-blue-200">
+            <div className="px-10 h-[85vh] overflow-y-scroll bg-blue-200 bg-chatImage2">
               <div className="space-y-1 flex flex-col justify-center mt-20 py-2">
                 {messages.length > 0 ? (
                   messages?.map((item, index) => (
                     <MessageCard
+                      isGroup={item.chat.group}
+                      timestamp={item.timestamp}
+                      user={item.user}
+                      key={index}
                       isReqUserMessage={item.user.id === auth.reqUser?.id}
                       content={item.content}
                     />
                   ))
                 ) : (
-                  <div className="text-center my-2 text-gray-600 text-3xl font-thin font-serif">
-                    Start your conversation now !
+                  <div className="text-center my-8 text-black text-3xl font-thin font-serif space-y-4">
+                    <p>Start your conversation now!</p>
+                    <p>Send a message to begin chatting.</p>
+                    {/* Lottie Animation */}
+                    <div>
+                      <Lottie
+                        options={lottieDefaultConfig}
+                        height={400}
+                        width={400}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
