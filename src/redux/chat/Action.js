@@ -1,5 +1,11 @@
 import { BASE_API_URL } from "../../config/api";
-import { CREATE_CHAT, CREATE_GROUP, GET_USERS_CHAT } from "./ActionType";
+import {
+  CREATE_CHAT,
+  CREATE_GROUP,
+  GET_USERS_CHAT,
+  UPDATED_LAST_CHAT_COUNT,
+  UPDATED_LAST_CHAT_MESSAGE,
+} from "./ActionType";
 
 export const createChat = (chatData) => async (dispatch) => {
   try {
@@ -50,12 +56,25 @@ export const getUserChat = (token) => async (dispatch) => {
         Authorization: `Bearer ${token}`,
       },
     });
-
     const data = await res.json();
     console.log("GET_USERS_CHAT ACTION : ", data);
 
     dispatch({ type: GET_USERS_CHAT, payload: data });
+    return data;
   } catch (error) {
     console.log("GET_USERS_CHAT ACTION ERROR : ", error);
+    return error;
   }
 };
+
+export const updateLastMessage =
+  (newLastMessage) => async (dispatch) => {
+    console.log("UPDATED_LAST_CHAT_MESSAGE ACTION : ", newLastMessage);
+    dispatch({ type: UPDATED_LAST_CHAT_MESSAGE, payload: newLastMessage });
+  };
+
+export const updateMessageCount =
+  (newLastMessage) => async (dispatch) => {
+    console.log("UPDATED_LAST_CHAT_COUNT ACTION : ", newLastMessage);
+    dispatch({ type: UPDATED_LAST_CHAT_COUNT, payload: newLastMessage });
+  };

@@ -1,8 +1,15 @@
-import { CREATE_NEW_MESSAGE, GET_ALL_MESSAGE } from "./ActionType";
+import {
+  CREATE_NEW_MESSAGE,
+  DELETED_MESSAGE,
+  GET_ALL_MESSAGE,
+  UPDATED_MESSAGE,
+} from "./ActionType";
 
 const initialValue = {
-  message: [],
+  message: null,
   newMessage: null,
+  updatedMessage: null,
+  deletedMessage: null,
 };
 
 export const messageReducer = (store = initialValue, { type, payload }) => {
@@ -11,6 +18,10 @@ export const messageReducer = (store = initialValue, { type, payload }) => {
       return { ...store, newMessage: payload };
     case GET_ALL_MESSAGE:
       return { ...store, message: payload };
+    case UPDATED_MESSAGE:
+      return { ...store, updatedMessage: payload };
+    case DELETED_MESSAGE:
+      return { ...store, deletedMessage: payload };
     default:
       return store;
   }

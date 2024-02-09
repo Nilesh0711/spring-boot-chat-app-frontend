@@ -1,9 +1,17 @@
-import { CREATE_CHAT, CREATE_GROUP, GET_USERS_CHAT } from "./ActionType";
+import {
+  CREATE_CHAT,
+  CREATE_GROUP,
+  GET_USERS_CHAT,
+  UPDATED_LAST_CHAT_COUNT,
+  UPDATED_LAST_CHAT_MESSAGE,
+} from "./ActionType";
 
 const initialValue = {
   chats: [],
   createdGroup: null,
   createdChat: null,
+  updatedLastChatMessage: null,
+  updatedLastChatCount: null,
 };
 
 export const chatReducer = (store = initialValue, { type, payload }) => {
@@ -16,6 +24,12 @@ export const chatReducer = (store = initialValue, { type, payload }) => {
 
     case GET_USERS_CHAT:
       return { ...store, chats: payload };
+
+    case UPDATED_LAST_CHAT_MESSAGE:
+      return { ...store, updatedLastChatMessage: payload };
+
+      case UPDATED_LAST_CHAT_COUNT:
+        return { ...store, updatedLastChatCount: payload };
 
     default:
       return store;
