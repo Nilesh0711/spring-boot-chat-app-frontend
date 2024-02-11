@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { timeStamptoTime } from "../../util/dateConverter";
 import { BsCheck2, BsThreeDotsVertical } from "react-icons/bs";
 import { Menu, MenuItem } from "@mui/material";
@@ -22,7 +22,7 @@ const MessageCard = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const [flag, setFlag] = useState(false);
-  const [newContent, setNewContent] = useState(content || "");
+  const [newContent, setNewContent] = useState(content);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -30,6 +30,10 @@ const MessageCard = ({
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  useEffect(() => {
+    setFlag(false);
+  }, [messageId]);
 
   const handleEditMessage = () => {
     if (!flag) return;
@@ -99,7 +103,7 @@ const MessageCard = ({
             <div>
               {!flag && (
                 <p className="text-white text-lg">
-                  {newContent || content || "Loading..."}
+                  {content || "Loading..."}
                 </p>
               )}
               {flag && (

@@ -45,20 +45,20 @@ const MessageSection = ({ messages }) => {
           messages?.map((item, index) => (
             <div className="w-full flex flex-col" key={index}>
               <div className="w-full items-center justify-center flex py-2">
-                <DateBadge timestamp={item[0].timestamp} />
+                <DateBadge timestamp={item[0]?.timestamp} />
               </div>
               {item.map((item2, index2) => (
                 <MessageCard
                   triggerNotScrollToBottom={triggerNotScrollToBottom}
-                  messageId={item2.id}
-                  isGroup={item2.chat.group}
-                  timestamp={item2.timestamp}
-                  user={item2.user}
+                  messageId={item2?.id}
+                  isGroup={item2?.chat.group}
+                  timestamp={item2?.timestamp}
+                  user={item2?.user}
                   key={index2}
-                  isReqUserMessage={item2.user.id === auth.reqUser?.id}
-                  content={item2.content}
-                  isEdited={item2.isEdited}
-                  isDeleted={item2.isDeleted}
+                  isReqUserMessage={item2?.user.id === auth.reqUser?.id}
+                  content={item2?.content}
+                  isEdited={item2?.isEdited}
+                  isDeleted={item2?.isDeleted}
                 />
               ))}
             </div>

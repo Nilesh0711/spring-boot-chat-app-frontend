@@ -15,8 +15,10 @@ import {
 } from "../redux/chat/Action";
 import {
   createMessage,
+  deletedMessage,
   getAllMessage,
   getAllMessageLast,
+  updatedMessage,
 } from "../redux/message/Action";
 
 import MessageHeader from "./messageCard/MessageHeader";
@@ -120,52 +122,110 @@ function HomePage() {
       const arrayItr1 = prev?.map((item) => {
         const arrayItr2 = item.map((item2) =>
           item2.id === message.updatedMessage.id
-            ? { ...item2, isEdited: true, content }
+            ? {
+                ...item2,
+                isEdited: true,
+                content: message.updatedMessage.content,
+              }
             : item2
         );
         return arrayItr2;
       });
       return arrayItr1;
     });
+    if (stompClient)
+      stompClient?.send(
+        "/app/message",
+        {},
+        JSON.stringify(message.updatedMessage)
+      );
   }, [message.updatedMessage]);
 
   useEffect(() => {
     if (!message.deletedMessage) return;
     setMessages((prev) => {
       const arrayItr1 = prev?.map((item) => {
-        const arrayItr2u = item.map((item2) =>
+        const arrayItr2 = item.map((item2) =>
           item2.id === message.deletedMessage.id
             ? { ...item2, isDeleted: true }
             : item2
         );
-        return arrayItr2u;
+        return arrayItr2;
       });
       return arrayItr1;
     });
+    if (stompClient)
+      stompClient?.send(
+        "/app/message",
+        {},
+        JSON.stringify(message.deletedMessage)
+      );
   }, [message.deletedMessage]);
 
   const onMessageRecieve = (payload) => {
     const receivedMessage = JSON.parse(payload.body);
+    console.log("recived message: ", receivedMessage);
     const currentChat = currentChatRef.current;
+
+    // condition to check different user and same currentChat
     if (
       auth.reqUser.id !== receivedMessage.user.id &&
       currentChat.id === receivedMessage.chat.id
     ) {
-      setMessages((prevMessages) => {
-        if (prevMessages.length > 0) {
-          const lastArrayIndex = prevMessages.length - 1;
-          const updatedLastArray = [
-            ...prevMessages[lastArrayIndex],
-            receivedMessage,
-          ];
-          return [...prevMessages.slice(0, lastArrayIndex), updatedLastArray];
-        } else {
-          return [[receivedMessage]];
-        }
-      });
+      // new message from server
+      if (!receivedMessage.isEdited && !receivedMessage.isDeleted) {
+        setMessages((prevMessages) => {
+          if (prevMessages.length > 0) {
+            const lastArrayIndex = prevMessages.length - 1;
+            const updatedLastArray = [
+              ...prevMessages[lastArrayIndex],
+              receivedMessage,
+            ];
+            return [...prevMessages.slice(0, lastArrayIndex), updatedLastArray];
+          } else {
+            return [[receivedMessage]];
+          }
+        });
+      }
+
+      // deleted message from server
+      if (receivedMessage.isDeleted) {
+        setMessages((prev) => {
+          const arrayItr1 = prev?.map((item) => {
+            const arrayItr2 = item.map((item2) =>
+              item2.id === receivedMessage.id
+                ? { ...item2, isDeleted: true }
+                : item2
+            );
+            return arrayItr2;
+          });
+          return arrayItr1;
+        });
+      }
+
+      // edited message from server
+      if (receivedMessage.isEdited) {
+        setMessages((prev) => {
+          const arrayItr1 = prev?.map((item) => {
+            const arrayItr2 = item.map((item2) =>
+              item2.id === receivedMessage.id
+                ? { ...item2, isEdited: true, content: receivedMessage.content }
+                : item2
+            );
+            return arrayItr2;
+          });
+          return arrayItr1;
+        });
+      }
     }
-    dispatch(updateLastMessage(receivedMessage));
-    dispatch(updateMessageCount(receivedMessage));
+    // condition to prevent update from same user side and should be in different chat
+    else if (
+      auth.reqUser.id !== receivedMessage.user.id &&
+      currentChat.id !== receivedMessage.chat.id
+    ) {
+      dispatch(updateLastMessage(receivedMessage));
+      dispatch(updateMessageCount(receivedMessage));
+    }
   };
 
   const handleSearch = (e) => {
