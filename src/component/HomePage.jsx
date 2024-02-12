@@ -47,6 +47,9 @@ function HomePage() {
   const [messages, setMessages] = useState(null);
   const [subscribedChannels, setSubscribedChannels] = useState([]);
 
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingChannels, setTypingChannels] = useState([]);
+
   const fetchData = async () => {
     try {
       const { temp, connected } = await connect();
@@ -74,6 +77,7 @@ function HomePage() {
   }, [message.message]);
 
   useEffect(() => {
+    setIsTyping(false);
     currentChatRef.current = currentChat;
     let data = {
       token,
@@ -88,15 +92,44 @@ function HomePage() {
 
   useEffect(() => {
     if (isConnected && stompClient && auth.reqUser && currentChat) {
-      const channel = `/group/${currentChat.id.toString()}`;
+      const messageDestination = `/group/${currentChat.id.toString()}`;
+      const typingDestination = `/group/typing/${currentChat.id.toString()}`;
 
-      if (!subscribedChannels.includes(channel)) {
-        stompClient.subscribe(channel, onMessageRecieve);
-        setSubscribedChannels((prevChannels) => [...prevChannels, channel]);
+      if (!subscribedChannels.includes(messageDestination)) {
+        stompClient.subscribe(messageDestination, onMessageRecieve);
+        setSubscribedChannels((prevChannels) => [
+          ...prevChannels,
+          messageDestination,
+        ]);
+      }
+
+      if (!typingChannels.includes(typingDestination)) {
+        stompClient.subscribe(typingDestination, onTypingRecieve);
+        setTypingChannels((prevChannels) => [
+          ...prevChannels,
+          typingDestination,
+        ]);
       }
     }
-  }, [currentChat, isConnected, stompClient, auth.reqUser, subscribedChannels]);
+  }, [
+    currentChat,
+    isConnected,
+    stompClient,
+    auth.reqUser,
+    subscribedChannels,
+    typingChannels,
+  ]);
 
+  // set typing true when content is changing
+  useEffect(() => {
+    if (content.length < 1 || !auth?.reqUser || !currentChat) return;
+    if (stompClient) {
+      const payload = { user: auth.reqUser, chat: currentChat };
+      stompClient?.send("/app/message/typing", {}, JSON.stringify(payload));
+    }
+  }, [content]);
+
+  // update message array when new message is created
   useEffect(() => {
     if (!message.newMessage) return;
     dispatch(updateLastMessage(message.newMessage));
@@ -116,6 +149,7 @@ function HomePage() {
       stompClient?.send("/app/message", {}, JSON.stringify(message.newMessage));
   }, [message.newMessage]);
 
+  // update message array when message is updated
   useEffect(() => {
     if (!message.updatedMessage) return;
     setMessages((prev) => {
@@ -141,6 +175,7 @@ function HomePage() {
       );
   }, [message.updatedMessage]);
 
+  // update message array when message is deleted
   useEffect(() => {
     if (!message.deletedMessage) return;
     setMessages((prev) => {
@@ -164,7 +199,6 @@ function HomePage() {
 
   const onMessageRecieve = (payload) => {
     const receivedMessage = JSON.parse(payload.body);
-    console.log("recived message: ", receivedMessage);
     const currentChat = currentChatRef.current;
 
     // condition to check different user and same currentChat
@@ -172,6 +206,9 @@ function HomePage() {
       auth.reqUser.id !== receivedMessage.user.id &&
       currentChat.id === receivedMessage.chat.id
     ) {
+      // set false to isTyping
+      setIsTyping(false);
+
       // new message from server
       if (!receivedMessage.isEdited && !receivedMessage.isDeleted) {
         setMessages((prevMessages) => {
@@ -225,6 +262,22 @@ function HomePage() {
     ) {
       dispatch(updateLastMessage(receivedMessage));
       dispatch(updateMessageCount(receivedMessage));
+    }
+  };
+
+  let typingTimeout = null;
+  const onTypingRecieve = (payload) => {
+    const receivedUser = JSON.parse(payload.body);
+    if (receivedUser.id !== auth?.reqUser.id) {
+      setIsTyping(true);
+
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+
+      typingTimeout = setTimeout(() => {
+        setIsTyping(false);
+      }, 3000);
     }
   };
 
@@ -311,7 +364,7 @@ function HomePage() {
             <MessageHeader currentChat={currentChat} />
 
             {/* message section */}
-            <MessageSection messages={messages} />
+            <MessageSection isTyping={isTyping} messages={messages} />
 
             {/* message footer */}
             <MessageFooter

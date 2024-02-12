@@ -8,7 +8,10 @@ import { useDispatch } from "react-redux";
 import { logOutAction } from "../../redux/auth/Action";
 import { useNavigate } from "react-router-dom";
 
-export default function HomeMenu({ handleCreatedGroup, handleCloseOpenProfile }) {
+export default function HomeMenu({
+  handleCreatedGroup,
+  handleCloseOpenProfile,
+}) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -28,6 +31,7 @@ export default function HomeMenu({ handleCreatedGroup, handleCloseOpenProfile })
   return (
     <div>
       <BsThreeDotsVertical
+        className="cursor-pointer"
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
         aria-haspopup="true"

@@ -4,8 +4,9 @@ import DateBadge from "./DateBadge";
 import MessageCard from "./MessageCard";
 import Lottie from "react-lottie";
 import lottieData from "../../lottie/start_chat.json";
+import TypingCard from "./TypingCard";
 
-const MessageSection = ({ messages }) => {
+const MessageSection = ({ messages, isTyping }) => {
   const { auth } = useSelector((store) => store);
 
   const lottieDefaultConfig = {
@@ -16,7 +17,6 @@ const MessageSection = ({ messages }) => {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
-
   const messagesEndRef = useRef(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
 
@@ -26,7 +26,11 @@ const MessageSection = ({ messages }) => {
     } else {
       setShouldScrollToBottom(true);
     }
-  }, [messages]);
+
+    if (isTyping) {
+      scrollToBottom();
+    }
+  }, [messages, isTyping]);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -39,8 +43,8 @@ const MessageSection = ({ messages }) => {
   };
 
   return (
-    <div className="px-10 h-[80vh] overflow-y-auto bg-blue-200">
-      <div className="space-y-1 flex flex-col justify-center mt-2 py-2">
+    <div className="px-10 h-[80vh] overflow-y-scroll bg-blue-200 bg-chatImage2">
+      <div className="space-y-1 flex flex-col justify-centers mt-2 py-2">
         {messages?.length > 0 && messages[0] != null ? (
           messages?.map((item, index) => (
             <div className="w-full flex flex-col" key={index}>
@@ -71,6 +75,13 @@ const MessageSection = ({ messages }) => {
             <div>
               <Lottie options={lottieDefaultConfig} height={400} width={400} />
             </div>
+          </div>
+        )}
+
+        {/* typing card */}
+        {isTyping && (
+          <div className="flex items-start">
+            <TypingCard />
           </div>
         )}
         {/* Empty div used to scroll to bottom */}

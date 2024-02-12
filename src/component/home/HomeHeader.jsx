@@ -30,7 +30,7 @@ const HomeHeader = ({ handleCloseOpenProfile, handleCreatedGroup }) => {
           className="cursor-pointer"
           onClick={() => navigate("/status")}
         />
-        <BiCommentDetail />
+        <BiCommentDetail className="cursor-pointer" />
         <HomeMenu
           handleCloseOpenProfile={handleCloseOpenProfile}
           handleCreatedGroup={handleCreatedGroup}
