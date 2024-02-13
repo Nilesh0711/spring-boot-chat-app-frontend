@@ -7,10 +7,17 @@ const Profile = ({ handleCloseOpenProfile }) => {
   const dispatch = useDispatch();
 
   const token = localStorage.getItem("token");
-  
-  const { auth} = useSelector((store) => store);
-  const [username, setUsername] = useState(auth.reqUser?.full_name || "username");
-  const [flag, setFlag] = useState(false);
+
+  const { auth } = useSelector((store) => store);
+  const [username, setUsername] = useState(
+    auth.reqUser?.full_name || "username"
+  );
+  const [aboutContent, setAboutContent] = useState(
+    auth.reqUser?.about || "Happy Coding!"
+  );
+
+  const [nameFlag, setNameFlag] = useState(false);
+  const [aboutFlag, setAboutFlag] = useState(false);
 
   const [tempImage, setTempImage] = useState(
     auth.reqUser.profile_picture || null
@@ -18,11 +25,10 @@ const Profile = ({ handleCloseOpenProfile }) => {
 
   useEffect(() => {
     if (token) dispatch(currentUser(token));
-  }, [auth.updateUser])
-  
+  }, [auth.updateUser]);
 
   const handleUpdateName = () => {
-    if (!flag) return;
+    if (!nameFlag) return;
     if (username.length > 3) {
       let data = {
         id: auth.reqUser.id,
@@ -33,13 +39,34 @@ const Profile = ({ handleCloseOpenProfile }) => {
     } else alert("Username Should be more than three");
   };
 
-  const handleFlag = () => {
-    handleUpdateName();
-    setFlag((val) => !val);
+  const handleUpdateAbout = () => {
+    if (!aboutFlag) return;
+    if (aboutContent.length > 3) {
+      let data = {
+        id: auth.reqUser.id,
+        token: token,
+        data: { about: aboutContent },
+      };
+      dispatch(updateUser(data));
+    } else alert("About Should be more than three");
   };
 
-  const handleChange = (e) => {
+  const handleNameFlag = () => {
+    handleUpdateName();
+    setNameFlag((val) => !val);
+  };
+
+  const handleAboutFlag = () => {
+    handleUpdateAbout();
+    setAboutFlag((val) => !val);
+  };
+
+  const handleChangeUserName = (e) => {
     setUsername(e.target.value);
+  };
+
+  const handleChangeAbout = (e) => {
+    setAboutContent(e.target.value);
   };
 
   const uploadImageToCloud = (pics) => {
@@ -94,37 +121,62 @@ const Profile = ({ handleCloseOpenProfile }) => {
       </div>
 
       {/* update name section */}
-      <div className="bg-white px-3">
-        <p className="py-3">Your name</p>
-        {!flag && (
+      <div className="bg-white px-3 mx-3">
+        <p className="py-3">Full name</p>
+        {!nameFlag && (
           <div className="w-full flex justify-between items-center">
             <p className="py-3">{username || "username"}</p>
-            <BsPencil onClick={handleFlag} className="cursor-pointer" />
+            <BsPencil onClick={handleNameFlag} className="cursor-pointer" />
           </div>
         )}
 
-        {flag && (
+        {nameFlag && (
           <div className="w-full flex justify-between items-center py-2">
             <input
-              onChange={handleChange}
+              onChange={handleChangeUserName}
               className="w-[80%] outline-none border-b-2 border-blue-700 p-2"
               placeholder="Enter your name"
               value={username}
               type="text"
             />
             <BsCheck2
-              onClick={handleFlag}
+              onClick={handleNameFlag}
               className="cursor-pointer text-2xl"
             />
           </div>
         )}
       </div>
 
-      <div className="px-3 my-5">
-        <p className="py-10">
-          This is not your usesrname, this name will appear to your Whatsapp
-          contacts.
-        </p>
+      <p className="px-3 mt-6 font-light">
+        This is not your usesrname, this name will appear to your Whatsapp
+        contacts.
+      </p>
+
+      {/* update about section */}
+      <div className="bg-white px-3 mx-3 mt-12">
+        <p className="py-3">About</p>
+        {!aboutFlag && (
+          <div className="w-full flex justify-between items-center">
+            <p className="py-3">{aboutContent || "username"}</p>
+            <BsPencil onClick={handleAboutFlag} className="cursor-pointer" />
+          </div>
+        )}
+
+        {aboutFlag && (
+          <div className="w-full flex justify-between items-center py-2">
+            <input
+              onChange={handleChangeAbout}
+              className="w-[80%] outline-none border-b-2 border-blue-700 p-2"
+              placeholder="Enter your name"
+              value={aboutContent}
+              type="text"
+            />
+            <BsCheck2
+              onClick={handleAboutFlag}
+              className="cursor-pointer text-2xl"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

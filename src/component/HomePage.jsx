@@ -29,6 +29,7 @@ import HomeHeader from "./home/HomeHeader";
 import HomeSearch from "./home/HomeSearch";
 import HomeUsers from "./home/HomeUsers";
 import { connect } from "../config/socket";
+import ChatProfile from "./chatProfile/ChatProfile";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function HomePage() {
   const currentChatRef = useRef(null);
   const [content, setContent] = useState("");
   const [isProfile, setIsProfile] = useState(false);
+  const [isChatProfile, setIsChatProfile] = useState(false);
   const [isGroup, setIsGroup] = useState(false);
   const [stompClient, setStompClient] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -78,6 +80,7 @@ function HomePage() {
 
   useEffect(() => {
     setIsTyping(false);
+    setIsChatProfile(false);
     currentChatRef.current = currentChat;
     let data = {
       token,
@@ -309,6 +312,10 @@ function HomePage() {
     setIsProfile((val) => !val);
   };
 
+  const handleCloseOpenChatProfile = () => {
+    setIsChatProfile((val) => !val);
+  };
+
   const handleCreatedGroup = () => {
     setIsGroup((val) => !val);
   };
@@ -359,9 +366,12 @@ function HomePage() {
 
         {/* message part */}
         {currentChat && (
-          <div className="w-[70%]">
+          <div className={` ${isChatProfile ? "w-[40%]" : "w-[70%]"} `}>
             {/* message header */}
-            <MessageHeader currentChat={currentChat} />
+            <MessageHeader
+              handleCloseOpenChatProfile={handleCloseOpenChatProfile}
+              currentChat={currentChat}
+            />
 
             {/* message section */}
             <MessageSection isTyping={isTyping} messages={messages} />
@@ -371,6 +381,16 @@ function HomePage() {
               handleCreateNewMessage={handleCreateNewMessage}
               setContent={setContent}
               content={content}
+            />
+          </div>
+        )}
+
+        {/* Chat Profile */}
+        {isChatProfile && (
+          <div className="w-[30%]">
+            <ChatProfile
+              currentChat={currentChat}
+              handleCloseOpenChatProfile={handleCloseOpenChatProfile}
             />
           </div>
         )}
